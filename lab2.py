@@ -68,7 +68,7 @@ def repor_donation_of_last_mounth():
                            donations.c.donation_date) \
         .join(donations, donations.c.department_id == departments.c.id) \
         .join(sponsors, sponsors.c.id == donations.c.sponsor_id) \
-        .filter(func.extract('month', donations.c.donation_date == month)).all()
+        .filter(func.extract('month', donations.c.donation_date) == month).all()
 
 
 def report_departaments_donation():
