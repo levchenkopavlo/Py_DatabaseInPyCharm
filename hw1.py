@@ -77,6 +77,7 @@ while True:
     command = input('номер команди:')
 
     if command == 'exit' or command == '':
+        session.close()
         break
     elif command == '1':
         customer = Customers(customer_acc=input("введіть логін покупця: "))
