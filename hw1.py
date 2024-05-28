@@ -165,25 +165,35 @@ while True:
         result = session.query(Sales).filter(Sales.id == deal_id).all()
         session.delete(result)
         session.commit()
+
+    # Відображення усіх угод
     elif command == '10':
         result = session.query(Sales).join(Salesmen).join(Customers).all()
         for item in result:
             print(item.id, item.amount, item.date, item.customer.customer_acc, item.salesman.salesman_acc)
+
+    # Відображення угод конкретного продавця
     elif command == '11':
         salesman = input("введіть логін продавця: ")
         result = session.query(Sales).join(Salesmen).join(Customers).filter(Salesmen.salesman_acc == salesman).all()
         for item in result:
             print(item.id, item.amount, item.date, item.customer.customer_acc, item.salesman.salesman_acc)
+
+    # Відображення максимальної за сумою угоди
     elif command == '12':
         max_sale = session.query(func.max(Sales.amount)).scalar()
         result = session.query(Sales).join(Salesmen).join(Customers).filter(Sales.amount == max_sale).all()
         for item in result:
             print(item.id, item.amount, item.date, item.customer.customer_acc, item.salesman.salesman_acc)
+
+    # Відображення мінімальної за сумою угоди;
     elif command == '13':
         min_sale = session.query(func.min(Sales.amount)).scalar()
         result = session.query(Sales).join(Salesmen).join(Customers).filter(Sales.amount == min_sale).all()
         for item in result:
             print(item.id, item.amount, item.date, item.customer.customer_acc, item.salesman.salesman_acc)
+
+    # Відображення максимальної суми угоди для конкретного продавця;
     elif command == '14':
         salesman = input("введіть логін продавця: ")
         max_sale = session.query(func.max(Sales.amount)).join(Salesmen).filter(
@@ -192,6 +202,8 @@ while True:
             and_(Sales.amount == max_sale, Salesmen.salesman_acc == salesman)).all()
         for item in result:
             print(item.id, item.amount, item.date, item.customer.customer_acc, item.salesman.salesman_acc)
+
+    # Відображення мінімальної за сумою угоди для конкретного продавця;
     elif command == '15':
         salesman = input("введіть логін продавця: ")
         min_sale = session.query(func.min(Sales.amount)).join(Salesmen).filter(
@@ -200,6 +212,8 @@ while True:
             and_(Sales.amount == min_sale, Salesmen.salesman_acc == salesman)).all()
         for item in result:
             print(item.id, item.amount, item.date, item.customer.customer_acc, item.salesman.salesman_acc)
+
+    # Відображення максимальної за сумою угоди для конкретного покупця;
     elif command == '16':
         customer = input("введіть логін покупця: ")
         max_sale = session.query(func.max(Sales.amount)).join(Customers).filter(
@@ -208,6 +222,8 @@ while True:
             and_(Sales.amount == max_sale, Customers.customer_acc == customer)).all()
         for item in result:
             print(item.id, item.amount, item.date, item.customer.customer_acc, item.salesman.salesman_acc)
+
+    # Відображення мінімальної за сумою угоди для конкретного покупця
     elif command == '17':
         customer = input("введіть логін покупця: ")
         min_sale = session.query(func.min(Sales.amount)).join(Customers).filter(
@@ -216,6 +232,8 @@ while True:
             and_(Sales.amount == min_sale, Customers.customer_acc == customer)).all()
         for item in result:
             print(item.id, item.amount, item.date, item.customer.customer_acc, item.salesman.salesman_acc)
+
+    # Відображення продавця з максимальною сумою продажів за всіма угодами;
     elif command == '18':
         total_amount = session.query(Sales.salesmen_id, func.sum(Sales.amount).label('total_amount1')) \
             .group_by(Sales.salesmen_id).subquery()
@@ -227,6 +245,7 @@ while True:
         for item in result:
             print(item.salesman_acc, item.total_amount1)
 
+    # Відображення продавця з мінімальною сумою продажів за всіма угодами;
     elif command == '19':
         total_amount = session.query(Sales.salesmen_id, func.sum(Sales.amount).label('total_amount1')) \
             .group_by(Sales.salesmen_id).subquery()
@@ -238,6 +257,7 @@ while True:
         for item in result:
             print(item.salesman_acc, item.total_amount1)
 
+    # Відображення покупця з максимальною сумою покупок за всіма угодами;
     elif command == '20':
         total_amount = session.query(Sales.customer_id, func.sum(Sales.amount).label('total_amount1')) \
             .group_by(Sales.customer_id).subquery()
@@ -249,17 +269,16 @@ while True:
         for item in result:
             print(item.customer_acc, item.total_amount1)
 
+    # Відображення середньої суми покупки для конкретного покупця;
     elif command == '21':
         customer = input("введіть логін покупця: ")
         avg_amount = session.query(func.avg(Sales.amount)).join(Customers).filter(
             and_(Customers.customer_acc == customer)).scalar()
-        # for item in avg_amount:
-        #     print(item.id, item.amount, item.date, item.customer.customer_acc)
         print(avg_amount)
+
+    # Відображення середньої суми покупки для конкретного продавця
     elif command == '22':
         salesman = input("введіть логін продавця: ")
         avg_amount = session.query(func.avg(Sales.amount)).join(Salesmen).filter(
             and_(Salesmen.salesman_acc == salesman)).scalar()
-        # for item in avg_amount:
-        #     print(item.id, item.amount, item.date, item.customer.customer_acc)
         print(avg_amount)
