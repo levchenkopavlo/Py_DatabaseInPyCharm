@@ -1,0 +1,102 @@
+pavlo@DESKTOP-G17UFAR:~$ redis-cli
+127.0.0.1:6379> SET name 'John Doe'
+OK
+127.0.0.1:6379> GET name
+"John Doe"
+127.0.0.1:6379> RPUSH fruits 'applle' 'banana' 'orange'
+(integer) 3
+127.0.0.1:6379> LRANGE fruits
+(error) ERR wrong number of arguments for 'lrange' command
+127.0.0.1:6379> LRANGE fruits 0 -1
+1) "applle"
+2) "banana"
+3) "orange"
+127.0.0.1:6379> HMSET user:1 name Alice age 25
+OK
+127.0.0.1:6379> HGETALL user:1
+1) "name"
+2) "Alice"
+3) "age"
+4) "25"
+127.0.0.1:6379> SADD tags red green blue
+(integer) 3
+127.0.0.1:6379> SMEMBERS tags
+1) "red"
+2) "green"
+3) "blue"
+127.0.0.1:6379> SET counter 0
+OK
+127.0.0.1:6379> INCR counter
+(integer) 1
+127.0.0.1:6379> GET counter
+"1"
+127.0.0.1:6379> DEL name
+(integer) 1
+127.0.0.1:6379> EXISTS name
+(integer) 0
+127.0.0.1:6379> SETEX message 60 "Hello, Redis"
+OK
+127.0.0.1:6379> FLUSHALL
+OK
+127.0.0.1:6379> SET geolocations
+(error) ERR wrong number of arguments for 'set' command
+127.0.0.1:6379> SET geolocations 50.392266342257024, 30.371207095024346
+(error) ERR syntax error
+127.0.0.1:6379> SET geolocations 50.392266342257024 30.371207095024346
+(error) ERR syntax error
+127.0.0.1:6379> GEOADD geo_locations 50.392266342257024 30.371207095024346
+(error) ERR wrong number of arguments for 'geoadd' command
+127.0.0.1:6379> GEOADD geo_locations 50.392266342257024 30.371207095024346
+(error) ERR wrong number of arguments for 'geoadd' command
+127.0.0.1:6379> GEOADD geo_locations 50.392266342257024 30.371207095024346 'Vyshn'
+(integer) 1
+127.0.0.1:6379> GEOADD geo_locations 50.46430031414862 30.406754278614425 'Nyvky'
+(integer) 1
+127.0.0.1:6379> set students
+(error) ERR wrong number of arguments for 'set' command
+127.0.0.1:6379> HMSET students Ivan 5 Mykola 5 Taras 4 Petro 6
+OK
+127.0.0.1:6379> HGETALL students
+1) "Ivan"
+2) "5"
+3) "Mykola"
+4) "5"
+5) "Taras"
+6) "4"
+7) "Petro"
+8) "6"
+127.0.0.1:6379> HMSET students Petro 4
+OK
+127.0.0.1:6379> HGETALL students
+1) "Ivan"
+2) "5"
+3) "Mykola"
+4) "5"
+5) "Taras"
+6) "4"
+7) "Petro"
+8) "4"
+127.0.0.1:6379> PFADD unique_users user1
+(integer) 1
+127.0.0.1:6379> PFADD unique_users user2
+(integer) 1
+127.0.0.1:6379> PFADD unique_users user3
+(integer) 1
+127.0.0.1:6379> PFADD unique_users user4
+(integer) 1
+127.0.0.1:6379> PFCOUNT unique_users
+(integer) 4
+127.0.0.1:6379> MULTI
+OK
+127.0.0.1:6379(TX)> LPUSH items keyboard mouse mousepad
+QUEUED
+127.0.0.1:6379(TX)> LPUSH items usb_flash
+QUEUED
+127.0.0.1:6379(TX)> HSET myhash pen1 blue
+QUEUED
+127.0.0.1:6379(TX)> EXEC
+1) (integer) 3
+2) (integer) 4
+3) (integer) 1
+127.0.0.1:6379> SHUTDOWN save
+not connected>
