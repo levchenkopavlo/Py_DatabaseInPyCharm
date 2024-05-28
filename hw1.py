@@ -136,25 +136,20 @@ while True:
                     session.commit()
                     break
     elif command == '6':
-        # sale = Sales(amount=input("введіть суму: "),
-        #                 date=input("введіть дату: "),
-        #                 customer_id=input("введіть логін покупця: "),
-        #                 salesmen_id=input("введіть логін продавця: "),
-        #                 )
-
-        # amount = input("введіть суму: "),
-        # date = input("введіть дату: "),
-        # customer_acc = input("введіть логін покупця: "),
-        # salesman_acc = input("введіть логін продавця: "),
-        # customer = session.query(Customers).filter(Customers.customer_acc == customer_acc).all()
-        # salesman = session.query(Salesmen).filter(Salesmen.salesman_acc == salesman_acc).all()
-        #
-        # result = session.query(Sales).filter(and_(Sales.amount == amount,
-        #                                           Sales.date == date)).all()
-        # if sale and customer:
-        #     print(f'знайдено {len(sale)} записів')
-        #     print('введіть нові значення')
-        pass
+        deal_id = input("введіть id продажу: ")
+        result = session.query(Sales).filter(Sales.id == deal_id).scalar()
+        if result:
+            customer_acc = input("введіть логін покупця: "),
+            customer_id = session.query(Customers.id).filter(Customers.customer_acc == customer_acc).scalar()
+            salesman_acc = input("введіть логін продавця: "),
+            salesman_id = session.query(Salesmen.id).filter(Salesmen.salesman_acc == salesman_acc).scalar()
+            date = input('введіть дату')
+            amount = float(input('введіть суму продажу'))
+            result.customer_id = customer_id
+            result.salesmen_id = salesman_id
+            result.date = date
+            result.amount = amount
+            session.commit()
     elif command == '7':
         customer = input("введіть логін покупця: ")
         result = session.query(Customers).filter(Customers.customer_acc == customer).all()
@@ -163,6 +158,11 @@ while True:
     elif command == '8':
         salesman = input("введіть логін продавця: ")
         result = session.query(Salesmen).filter(Salesmen.salesman_acc == salesman).all()
+        session.delete(result)
+        session.commit()
+    elif command == '8':
+        deal_id = input("введіть id продажу: ")
+        result = session.query(Sales).filter(Sales.id == deal_id).all()
         session.delete(result)
         session.commit()
     elif command == '10':
@@ -218,12 +218,12 @@ while True:
             print(item.id, item.amount, item.date, item.customer.customer_acc, item.salesman.salesman_acc)
     elif command == '18':
         total_amount = session.query(Sales.salesmen_id, func.sum(Sales.amount).label('total_amount1')) \
-                       .group_by(Sales.salesmen_id).subquery()
+            .group_by(Sales.salesmen_id).subquery()
         max_amount = session.query(func.max(total_amount.c.total_amount1).label('max_total_amount')).subquery()
 
         result = session.query(Salesmen.salesman_acc, total_amount.c.total_amount1) \
-                        .join(total_amount, Salesmen.id == total_amount.c.salesmen_id) \
-                        .filter(total_amount.c.total_amount1 == max_amount.c.max_total_amount).all()
+            .join(total_amount, Salesmen.id == total_amount.c.salesmen_id) \
+            .filter(total_amount.c.total_amount1 == max_amount.c.max_total_amount).all()
         for item in result:
             print(item.salesman_acc, item.total_amount1)
 
