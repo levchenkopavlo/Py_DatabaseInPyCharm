@@ -27,7 +27,8 @@ groups = metadata.tables['groups']
 departments = metadata.tables['departments']
 faculties = metadata.tables['faculties']
 teachers = metadata.tables['teachers']
-
+lectures = metadata.tables['lectures']
+groupslectures = metadata.tables['groupslectures']
 
 # print('Таблиці з бази даних')
 # for table_name in metadata.tables.keys():
@@ -65,11 +66,23 @@ while True:
         result = session.query(teachers).all()
         if result:
             for row in result:
-
+                for column_name in teachers.columns.keys():
+                    print(f'{column_name}, {row.__getattr__(column_name)}',end='; ')
+                print()
 
     # 3. вивести назви усіх кафедр
     elif command == '3':
         result = session.query(departments, faculties.c.name.label('faculty')).join(faculties, faculties.c.id == departments.c.facultyid).all()
+        if result:
+            for row in result:
+                # print(f"id: {row.id}, name: {row.name}, building: {row.building}, financing: {row.financing}, faculty: {row.faculty}")
+                print(f"{row.name}")
+
+    # 4. вивести імена та прізвища викладачів, які читають лекції в конкретній групі
+    elif command == '4':
+        result = session.query(teachers.c.name, teachers.c.surname) \
+                        .join(lectures, lectures.c.teacherid == teachers.c.id) \
+                        .join(groupslectures, groupslectures.c.lectureid == lectures.c.id).all()
         if result:
             for row in result:
                 # print(f"id: {row.id}, name: {row.name}, building: {row.building}, financing: {row.financing}, faculty: {row.faculty}")
