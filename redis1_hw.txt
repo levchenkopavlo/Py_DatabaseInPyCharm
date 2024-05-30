@@ -1,0 +1,161 @@
+pavlo@DESKTOP-G17UFAR:~$ sudo service redis-server start
+[sudo] password for pavlo:
+pavlo@DESKTOP-G17UFAR:~$ redis-cli
+127.0.0.1:6379> SET username Pavlo
+OK
+127.0.0.1:6379> LPUSH todo_list "Приготувати обід" "вивчити Redis"
+(integer) 2
+127.0.0.1:6379> LRANGE todo_list 0 -1
+1) "\xd0\xb2\xd0\xb8\xd0\xb2\xd1\x87\xd0\xb8\xd1\x82\xd0\xb8 Redis"
+2) "\xd0\x9f\xd1\x80\xd0\xb8\xd0\xb3\xd0\xbe\xd1\x82\xd1\x83\xd0\xb2\xd0\xb0\xd1\x82\xd0\xb8 \xd0\xbe\xd0\xb1\xd1\x96\xd0\xb4"
+127.0.0.1:6379> HSET userdata age 33 country Ukraine
+(integer) 2
+127.0.0.1:6379> HGETALL
+(error) ERR wrong number of arguments for 'hgetall' command
+127.0.0.1:6379> HGETALL userdata
+1) "age"
+2) "33"
+3) "country"
+4) "Ukraine"
+127.0.0.1:6379> SADD tags programming redis tutorial
+(integer) 3
+127.0.0.1:6379> SMEMBERS tags
+1) "programming"
+2) "redis"
+3) "tutorial"
+127.0.0.1:6379> INCRBY page_views 5
+(integer) 5
+127.0.0.1:6379> GET page_views
+"5"
+127.0.0.1:6379> SET session_token abc123 EX 120
+OK
+127.0.0.1:6379> TTL session_token
+(integer) 84
+127.0.0.1:6379> TTL session_token
+(integer) 80
+127.0.0.1:6379> DEL username
+(integer) 1
+127.0.0.1:6379> EXISTS username
+(integer) 0
+127.0.0.1:6379> SET user:1:name Pavlo
+OK
+127.0.0.1:6379> KEYS user:*
+1) "user:1:name"
+127.0.0.1:6379> SETBIT online_status 0 1
+(integer) 0
+127.0.0.1:6379> SETBIT online_status 0 1
+(integer) 1
+127.0.0.1:6379> GETBIT online_status 0
+(integer) 1
+127.0.0.1:6379> MULTI
+OK
+127.0.0.1:6379(TX)> INCRBY balance 1000
+QUEUED
+127.0.0.1:6379(TX)> GET ballance
+QUEUED
+127.0.0.1:6379(TX)> EXEC
+1) (integer) 1000
+2) (nil)
+127.0.0.1:6379> MULTI
+OK
+127.0.0.1:6379(TX)> INCRBY balance 1000
+QUEUED
+127.0.0.1:6379(TX)> GET balance
+QUEUED
+127.0.0.1:6379(TX)> EXEC
+1) (integer) 2000
+2) "2000"
+127.0.0.1:6379> MULTI
+OK
+127.0.0.1:6379(TX)> DECRBY balance 1000
+QUEUED
+127.0.0.1:6379(TX)> GET balance
+QUEUED
+127.0.0.1:6379(TX)> EXEC
+1) (integer) 1000
+2) "1000"
+127.0.0.1:6379> SADD cache:popular_articles 100 188 53 8800
+(integer) 4
+127.0.0.1:6379> SMEMBERS cache:popular_articles
+1) "53"
+2) "100"
+3) "188"
+4) "8800"
+127.0.0.1:6379> SADD set1 23 44 67676 any_text
+(integer) 4
+127.0.0.1:6379> SADD set2 text_again rrr 44
+(integer) 3
+127.0.0.1:6379> SUNIONSTORE union_set set1 set2
+(integer) 6
+127.0.0.1:6379> SMEMBERS union_set
+1) "23"
+2) "44"
+3) "67676"
+4) "any_text"
+5) "text_again"
+6) "rrr"
+127.0.0.1:6379> SINTERSTORE intersection_set set1 set2
+(integer) 1
+127.0.0.1:6379> SMEMBERS intersection_set
+1) "44"
+127.0.0.1:6379> SUBSCRIBE messages
+1) "subscribe"
+2) "messages"
+3) (integer) 1
+1) "message"
+2) "messages"
+3) "Hello Redis"
+1) "message"
+2) "messages"
+3) "Hello again"
+127.0.0.1:6379(subscribed mode)> UNSUBSCRIBE messages
+1) "unsubscribe"
+2) "messages"
+3) (integer) 0
+127.0.0.1:6379(subscribed mode)>
+127.0.0.1:6379> GEOADD locations 50.46430031414862 30.406754278614425 'Nyvky'
+(integer) 1
+127.0.0.1:6379> LPUSH tasks Task1 Task2 Task3
+(integer) 3
+127.0.0.1:6379> LRANGE tasks 0 -1
+1) "Task3"
+2) "Task2"
+3) "Task1"
+127.0.0.1:6379> LPUSH tasks Task4
+(integer) 4
+127.0.0.1:6379> RPOP tasks 1
+1) "Task1"
+127.0.0.1:6379> LRANGE tasks 0 -1
+1) "Task4"
+2) "Task3"
+3) "Task2"
+127.0.0.1:6379> PFADD unique_users user1 user2 user3
+(integer) 0
+127.0.0.1:6379> PFCOUNT unique_users
+(integer) 4
+127.0.0.1:6379> DEL unique_users
+(integer) 1
+127.0.0.1:6379> PFADD unique_users user1 user2 user3
+(integer) 1
+127.0.0.1:6379> PFCOUNT unique_users
+(integer) 3
+127.0.0.1:6379> LPUSH message_queue
+(error) ERR wrong number of arguments for 'lpush' command
+127.0.0.1:6379> LPUSH message_queue "message 1"
+(integer) 1
+127.0.0.1:6379> LPUSH message_queue "message 2"
+(integer) 2
+127.0.0.1:6379> LPUSH message_queue "message 3"
+(integer) 3
+127.0.0.1:6379> LPUSH message_queue "message 4"
+(integer) 4
+127.0.0.1:6379> LPUSH message_queue "message 5"
+(integer) 5
+127.0.0.1:6379> LRANGE message_queue 0 -1
+1) "message 5"
+2) "message 4"
+3) "message 3"
+4) "message 2"
+5) "message 1"
+127.0.0.1:6379> SHUTDOWN save
+not connected>
