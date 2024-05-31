@@ -104,7 +104,8 @@ while True:
 
     # 6. відобразити кафедру з максимальною кількістю груп
     elif command == '6':
-        dep_by_groups = session.query(departments.c.name.label('department'), departments.c.id.label('department_id'), func.count(departments.c.name).label('count')) \
+        dep_by_groups = session.query(departments.c.name.label('department'), departments.c.id.label('department_id'),
+                                      func.count(departments.c.name).label('count')) \
             .join(groups, departments.c.id == groups.c.departmentid) \
             .group_by(departments.c.id).subquery()
         max_groups = session.query(func.max(dep_by_groups.c.count)).scalar()
@@ -115,7 +116,8 @@ while True:
 
     # 7. відобразити кафедру з мінімальною кількістю груп
     elif command == '7':
-        dep_by_groups = session.query(departments.c.name.label('department'), departments.c.id.label('department_id'), func.count(departments.c.name).label('count')) \
+        dep_by_groups = session.query(departments.c.name.label('department'), departments.c.id.label('department_id'),
+                                      func.count(departments.c.name).label('count')) \
             .join(groups, departments.c.id == groups.c.departmentid) \
             .group_by(departments.c.id).subquery()
         min_groups = session.query(func.min(dep_by_groups.c.count)).scalar()
@@ -123,17 +125,54 @@ while True:
         if result:
             for row in result:
                 print(f"{row.department}")
-    # 8. вивести назви предметів, які викладає конкретний викладач
-    elif command == '7':
-        result = session.query(subjects) \
-                        .join(lectures, subjects.c.id == lectures.c.subjectid) \
-                        .join(teachers, teachers.c.id == lectures.c.teacherid)
 
-        dep_by_groups = session.query(departments.c.name.label('department'), departments.c.id.label('department_id'), func.count(departments.c.name).label('count')) \
-            .join(groups, departments.c.id == groups.c.departmentid) \
-            .group_by(departments.c.id).subquery()
-        min_groups = session.query(func.min(dep_by_groups.c.count)).scalar()
-        result = session.query(dep_by_groups).where(dep_by_groups.c.count == min_groups).all()
+    # 8. вивести назви предметів, які викладає конкретний викладач
+    elif command == '8':
+        # teacher = input('Введіть ім\'я та прізвище викладача: ')
+        teacher = 'john doe'
+        result = session.query(subjects) \
+            .join(lectures, subjects.c.id == lectures.c.subjectid) \
+            .join(teachers, teachers.c.id == lectures.c.teacherid) \
+            .where(func.lower(teachers.c.name + ' ' + teachers.c.surname) == teacher.lower()).all()
+        if result:
+            for row in result:
+                print(f"{row.name}")
+
+    # 9. вивести назви кафедр, на яких викладається конкретна дисципліна
+    elif command == '9':
+        subject = input('Введіть назву предмета: ')
+        # subject = 'Engineering'
+        result = session.query(departments) \
+            .join(groups, groups.c.departmentid == departments.c.id) \
+            .join(groupslectures, groupslectures.c.groupid == groups.c.id) \
+            .join(lectures, lectures.c.id == groupslectures.c.lectureid) \
+            .join(subjects, subjects.c.id == lectures.c.subjectid) \
+            .where(func.lower(subjects.c.name) == subject.lower()).all()
+        if result:
+            for row in result:
+                print(f"{row.name}")
+
+    #10. вивести назви груп, що належать до конкретного факультету
+    elif command == '10':
+        faculty = input('Введіть назву факультету: ')
+        # faculty = 'Engineering'
+        result = session.query(groups) \
+            .join(departments, departments.c.id == groups.c.departmentid) \
+            .join(faculties, faculties.c.id == departments.c.facultyid) \
+            .where(func.lower(faculties.c.name) == faculty.lower()).all()
+        if result:
+            for row in result:
+                print(f"{row.name}")
+
+    # 11. вивести назви предметів та повні імена викладачів, які читають найбільшу кількість лекцій з них
+    # 12. вивести назву предмету, за яким читається найменше лекцій
+    elif command == '10':
+        lecture_by_subject = session.query(lectures.c.id.label('lecture_id'), func.count(lectures.c.id).label('count')) \
+            .join(subjects, subjects.c.id == lectures.c.subjectid) \
+            .group_by(lectures.c.subjectid).subquery()
+        min_lectures = session.query(func.min(lecture_by_subject.c.count)).scalar()
+        result = session.query()
         if result:
             for row in result:
                 print(f"{row.department}")
+    # 13. вивести назву предмету, за яким читається найбільше лекцій
