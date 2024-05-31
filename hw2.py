@@ -1,4 +1,4 @@
-from sqlalchemy import create_engine, inspect, MetaData, Table, Column, Integer, String, ForeignKey
+from sqlalchemy import create_engine, inspect, MetaData, Table, Column, Integer, String, ForeignKey, func
 from sqlalchemy.sql import select
 from sqlalchemy.orm import sessionmaker, relationship, aliased
 from sqlalchemy import Column, Integer, String, Float
@@ -29,6 +29,7 @@ faculties = metadata.tables['faculties']
 teachers = metadata.tables['teachers']
 lectures = metadata.tables['lectures']
 groupslectures = metadata.tables['groupslectures']
+subjects = metadata.tables['subjects']
 
 # print('Таблиці з бази даних')
 # for table_name in metadata.tables.keys():
@@ -56,10 +57,13 @@ while True:
 
     # 1. вивести інформацію про всі навчальні групи
     elif command == '1':
-        result = session.query(groups.c.id, groups.c.name, groups.c.rating, groups.c.year, departments.c.name.label('department')).join(departments, departments.c.id == groups.c.departmentid).all()
+        result = session.query(groups.c.id, groups.c.name, groups.c.rating, groups.c.year,
+                               departments.c.name.label('department')).join(departments,
+                                                                            departments.c.id == groups.c.departmentid).all()
         if result:
             for row in result:
-                print(f"id: {row.id}, name: {row.name}, rating: {row.rating}, year: {row.year}, department: {row.department}")
+                print(
+                    f"id: {row.id}, name: {row.name}, rating: {row.rating}, year: {row.year}, department: {row.department}")
 
     # 2. вивести інформацію про всіх викладачів
     elif command == '2':
@@ -67,23 +71,69 @@ while True:
         if result:
             for row in result:
                 for column_name in teachers.columns.keys():
-                    print(f'{column_name}, {row.__getattr__(column_name)}',end='; ')
+                    print(f'{column_name}, {row.__getattr__(column_name)}', end='; ')
                 print()
 
     # 3. вивести назви усіх кафедр
     elif command == '3':
-        result = session.query(departments, faculties.c.name.label('faculty')).join(faculties, faculties.c.id == departments.c.facultyid).all()
+        result = session.query(departments, faculties.c.name.label('faculty')) \
+            .join(faculties, faculties.c.id == departments.c.facultyid).all()
         if result:
             for row in result:
-                # print(f"id: {row.id}, name: {row.name}, building: {row.building}, financing: {row.financing}, faculty: {row.faculty}")
                 print(f"{row.name}")
 
     # 4. вивести імена та прізвища викладачів, які читають лекції в конкретній групі
     elif command == '4':
+        group = input('Введіть назву групи: ')
         result = session.query(teachers.c.name, teachers.c.surname) \
-                        .join(lectures, lectures.c.teacherid == teachers.c.id) \
-                        .join(groupslectures, groupslectures.c.lectureid == lectures.c.id).all()
+            .join(lectures, lectures.c.teacherid == teachers.c.id) \
+            .join(groupslectures, groupslectures.c.lectureid == lectures.c.id) \
+            .join(groups, groups.c.id == groupslectures.c.groupid) \
+            .where(func.lower(groups.c.name) == group.lower())
         if result:
             for row in result:
-                # print(f"id: {row.id}, name: {row.name}, building: {row.building}, financing: {row.financing}, faculty: {row.faculty}")
-                print(f"{row.name}")
+                print(f"{row.name} {row.surname}")
+
+    # 5. вивести назви кафедр і груп, які до них відносяться')
+    elif command == '5':
+        result = session.query(departments.c.name.label('department'), groups.c.name.label('group')) \
+            .join(groups, departments.c.id == groups.c.departmentid).all()
+        if result:
+            for row in result:
+                print(f"{row.department} {row.group}")
+
+    # 6. відобразити кафедру з максимальною кількістю груп
+    elif command == '6':
+        dep_by_groups = session.query(departments.c.name.label('department'), departments.c.id.label('department_id'), func.count(departments.c.name).label('count')) \
+            .join(groups, departments.c.id == groups.c.departmentid) \
+            .group_by(departments.c.id).subquery()
+        max_groups = session.query(func.max(dep_by_groups.c.count)).scalar()
+        result = session.query(dep_by_groups).where(dep_by_groups.c.count == max_groups).all()
+        if result:
+            for row in result:
+                print(f"{row.department}")
+
+    # 7. відобразити кафедру з мінімальною кількістю груп
+    elif command == '7':
+        dep_by_groups = session.query(departments.c.name.label('department'), departments.c.id.label('department_id'), func.count(departments.c.name).label('count')) \
+            .join(groups, departments.c.id == groups.c.departmentid) \
+            .group_by(departments.c.id).subquery()
+        min_groups = session.query(func.min(dep_by_groups.c.count)).scalar()
+        result = session.query(dep_by_groups).where(dep_by_groups.c.count == min_groups).all()
+        if result:
+            for row in result:
+                print(f"{row.department}")
+    # 8. вивести назви предметів, які викладає конкретний викладач
+    elif command == '7':
+        result = session.query(subjects) \
+                        .join(lectures, subjects.c.id == lectures.c.subjectid) \
+                        .join(teachers, teachers.c.id == lectures.c.teacherid)
+
+        dep_by_groups = session.query(departments.c.name.label('department'), departments.c.id.label('department_id'), func.count(departments.c.name).label('count')) \
+            .join(groups, departments.c.id == groups.c.departmentid) \
+            .group_by(departments.c.id).subquery()
+        min_groups = session.query(func.min(dep_by_groups.c.count)).scalar()
+        result = session.query(dep_by_groups).where(dep_by_groups.c.count == min_groups).all()
+        if result:
+            for row in result:
+                print(f"{row.department}")
