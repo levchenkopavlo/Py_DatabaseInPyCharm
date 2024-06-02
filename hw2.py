@@ -1,4 +1,4 @@
-from sqlalchemy import create_engine, inspect, MetaData, Table, Column, Integer, String, ForeignKey, func
+from sqlalchemy import create_engine, inspect, MetaData, Table, Column, Integer, String, ForeignKey, func, and_
 from sqlalchemy.sql import select
 from sqlalchemy.orm import sessionmaker, relationship, aliased
 from sqlalchemy import Column, Integer, String, Float
@@ -152,7 +152,7 @@ while True:
             for row in result:
                 print(f"{row.name}")
 
-    #10. вивести назви груп, що належать до конкретного факультету
+    # 10. вивести назви груп, що належать до конкретного факультету
     elif command == '10':
         faculty = input('Введіть назву факультету: ')
         # faculty = 'Engineering'
@@ -165,14 +165,53 @@ while True:
                 print(f"{row.name}")
 
     # 11. вивести назви предметів та повні імена викладачів, які читають найбільшу кількість лекцій з них
+    elif command == '11':
+        summary_data = session.query(subjects.c.name.label('subject'), subjects.c.id.label('subjectid'),
+                                     func.count(teachers.c.id).label('count'),
+                                     (teachers.c.name + ' ' + teachers.c.surname).label('teacher'),
+                                     teachers.c.id.label('teacherid')) \
+            .join(lectures, subjects.c.id == lectures.c.subjectid) \
+            .join(teachers, lectures.c.teacherid == teachers.c.id) \
+            .group_by(subjects.c.name, teachers.c.id, subjects.c.id).subquery()
+
+        subjects_in_summary = session.query(summary_data.c.subject, summary_data.c.subjectid).distinct().order_by(
+            summary_data.c.subject)
+
+        if subjects_in_summary:
+            for row in subjects_in_summary:
+                # print(row.subject)
+                max_for_subject = session.query((func.max(summary_data.c.count)).label('max'), summary_data.c.subjectid).where(
+                    summary_data.c.subjectid == row.subjectid).subquery()
+                # print(max_for_subject)
+
+                result = session.query(summary_data.c.subject, summary_data.c.teacher).where(
+                    and_(summary_data.c.count == max_for_subject.c.max, summary_data.c.subjectid == max_for_subject.c.subjectid)).all()
+                if result:
+                    for row_int in result:
+                        print(f'{row_int.subject} - {row_int.teacher}')
+
+
     # 12. вивести назву предмету, за яким читається найменше лекцій
-    elif command == '10':
-        lecture_by_subject = session.query(lectures.c.id.label('lecture_id'), func.count(lectures.c.id).label('count')) \
-            .join(subjects, subjects.c.id == lectures.c.subjectid) \
+    elif command == '12':
+        lecture_by_subject = session.query(lectures.c.subjectid.label('subject_id'),
+                                           func.count(lectures.c.subjectid).label('count')) \
             .group_by(lectures.c.subjectid).subquery()
         min_lectures = session.query(func.min(lecture_by_subject.c.count)).scalar()
-        result = session.query()
+        result = session.query(lecture_by_subject, subjects.c.name).join(subjects,
+                                                                         subjects.c.id == lecture_by_subject.c.subject_id) \
+            .where(lecture_by_subject.c.count == min_lectures)
         if result:
             for row in result:
-                print(f"{row.department}")
+                print(f"{row.name}")
     # 13. вивести назву предмету, за яким читається найбільше лекцій
+    elif command == '13':
+        lecture_by_subject = session.query(lectures.c.subjectid.label('subject_id'),
+                                           func.count(lectures.c.subjectid).label('count')) \
+            .group_by(lectures.c.subjectid).subquery()
+        max_lectures = session.query(func.max(lecture_by_subject.c.count)).scalar()
+        result = session.query(lecture_by_subject, subjects.c.name).join(subjects,
+                                                                         subjects.c.id == lecture_by_subject.c.subject_id) \
+            .where(lecture_by_subject.c.count == max_lectures)
+        if result:
+            for row in result:
+                print(f"{row.name}")
