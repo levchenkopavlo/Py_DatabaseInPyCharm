@@ -174,22 +174,20 @@ while True:
             .join(teachers, lectures.c.teacherid == teachers.c.id) \
             .group_by(subjects.c.name, teachers.c.id, subjects.c.id).subquery()
 
-        subjects_in_summary = session.query(summary_data.c.subject, summary_data.c.subjectid).distinct().order_by(
-            summary_data.c.subject)
+        subjects_in_summary = session.query(summary_data.c.subject, summary_data.c.subjectid).distinct() \
+            .order_by(summary_data.c.subject)
 
         if subjects_in_summary:
             for row in subjects_in_summary:
                 # print(row.subject)
-                max_for_subject = session.query((func.max(summary_data.c.count)).label('max'), summary_data.c.subjectid).where(
-                    summary_data.c.subjectid == row.subjectid).subquery()
+                max_for_subject = session.query((func.max(summary_data.c.count)).label('max')) \
+                    .where(summary_data.c.subject == row.subject).scalar()
                 # print(max_for_subject)
 
-                result = session.query(summary_data.c.subject, summary_data.c.teacher).where(
-                    and_(summary_data.c.count == max_for_subject.c.max, summary_data.c.subjectid == max_for_subject.c.subjectid)).all()
-                if result:
-                    for row_int in result:
-                        print(f'{row_int.subject} - {row_int.teacher}')
-
+                result = session.query(summary_data) \
+                    .where(summary_data.c.subject == row.subject, summary_data.c.count == max_for_subject).all()
+                for row in result:
+                    print(row.subject, row.teacher, row.count)
 
     # 12. вивести назву предмету, за яким читається найменше лекцій
     elif command == '12':

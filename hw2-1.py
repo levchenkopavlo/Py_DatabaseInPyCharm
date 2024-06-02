@@ -1,30 +1,45 @@
-from sqlalchemy import create_engine, MetaData, insert, delete, update
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy import create_engine, inspect, MetaData, Table, Column, Integer, String, ForeignKey, func, and_, insert, update, delete
+from sqlalchemy.sql import select
+from sqlalchemy.orm import sessionmaker, relationship, aliased
+from sqlalchemy import Column, Integer, String, Float
 import json
 
-
+# Зчитування конфігураційних даних з файлу
 with open('config.json', 'r') as f:
     data = json.load(f)
     db_user = data['user']  # postgres
     db_password = data['password']
 
-db_url = f'postgresql+psycopg2://{db_user}:{db_password}@localhost:5432/hospital'
+# Побудова URL для підключення до PostgreSQL
+db_url = f'postgresql+psycopg2://{db_user}:{db_password}@localhost:5432/academy'
 engine = create_engine(db_url)
 
+# З'єднання з базою даних
 metadata = MetaData()
 metadata.reflect(bind=engine)
 
+Session = sessionmaker(bind=engine)
+session = Session()
+
 connection = engine.connect()
 
+groups = metadata.tables['groups']
+departments = metadata.tables['departments']
+faculties = metadata.tables['faculties']
+teachers = metadata.tables['teachers']
+lectures = metadata.tables['lectures']
+groupslectures = metadata.tables['groupslectures']
+subjects = metadata.tables['subjects']
 
 def insert_row(table):
     values = {}
 
     for column_name in table.columns.keys():
-        value = input(f'Введіть значення для стовпчика {column_name}: ')
+        if column_name != 'id':
+            value = input(f'Введіть значення для стовпчика {column_name}: ')
 
-        if value != '':
-            values[column_name] = value
+            if value != '':
+                values[column_name] = value
 
     query = insert(table).values(values)
     connection.execute(query)
@@ -79,6 +94,10 @@ def delete_data(table):
 
     connection.execute(query)
     connection.commit()
+
+print('Таблиці з бази даних')
+for table_name in metadata.tables.keys():
+    print(table_name)
 
 
 while True:
